@@ -1,2 +1,7 @@
+name = "PandemicAIs"
+uuid = "5b8562fb-f4d8-4835-9d02-90268c707351"
+authors = ["Laura Demkowicz-Duffy <laura@laurademkowiczduffy.co.uk>"]
+version = "0.1.0"
+
 [deps]
 Pandemic = "2f1a64cf-8e1a-4d5e-af1d-3b57a049fca1"

@@ -21,17 +21,16 @@ begin
 	import Pkg
 	Pkg.activate("./.notebook_env")
 	Pkg.add("PlutoUI")
-	Pkg.add("Glob")
 	Pkg.add("WGLMakie")
 	Pkg.add("JSServe")
 	Pkg.add("GraphMakie")
 	Pkg.add("Random")
 	Pkg.add("NetworkLayout")
 	Pkg.add(path=".")
+	using PandemicAIs
 	using Pandemic
 	using Random, Serialization
 	using PlutoUI
-	using Glob
 	using WGLMakie, GraphMakie, JSServe
 	import NetworkLayout
 	Page()
@@ -64,10 +63,10 @@ end
 # ╔═╡ 503d0c6f-646c-4488-bd97-242805336f9f
 if state == nothing
 	restartgame
-	maps_options = glob("maps/*.jl")
+	maps_options = names(Pandemic.Maps)
 	md"""
 	Select a map script to load:
-	$(@bind mapfile Select(maps_options))
+	$(@bind mapfunc Select(maps_options))
 
 	Seed (integer, leave blank for random): $(@bind seed PlutoUI.TextField(default="111"))
 	"""
@@ -80,7 +79,7 @@ end
 # ╔═╡ 59c55dde-1338-47ee-8d7e-a686e7eb56bd
 # ╠═╡ show_logs = false
 game = if isnothing(state)
-	worldmap = include(mapfile)
+	worldmap = mapfunc()
 	rng = MersenneTwister(if seed == "" 
 		nothing
 	else
@@ -97,7 +96,7 @@ begin
 	function printextracityinfo(game::Game)
 		for c in 1:length(game.world.cities)
 			if sum(game.cubes[c, :]) != 0
-				println(Pandemic.Formatting.city(game, c))
+				println(Formatting.city(game, c))
 			end
 		end
 	end
