@@ -88,24 +88,26 @@ function PlayerAction(atype; kwargs...)
     return toret
 end
 
+# TODO: add companion function which can cull the list after a move without reperforming all checks
 """
     possiblemoves(game)
 
-Given `game`, find all possible legal moves for the current player.
+Given `game`, find all possible legal moves for the current player (`game.playerturn`).
 
-Note that for the [`DiscoverCure`](@ref) action in particular, the returned [`PlayerAction`](@ref) does **not** contain the cards that will be used.
-These must be added through some other means if desired.
+# Notes
+
+- For the [`DiscoverCure`](@ref) action in particular, the returned [`PlayerAction`](@ref) does **not** contain the cards that will be used.
+  These must be added through some other means if desired.
 """
-# TODO: add companion function which can cull the list after a move without reperforming all checks
-function possiblemoves(g::Game)::Vec{PlayerAction}
-    if g.state != Playing
+function possiblemoves(g::Game)::Vector{PlayerAction}
+    if g.state != Pandemic.Playing
         return []
     end
 
     playerpos = g.playerlocs[g.playerturn]
     hand = g.hands[g.playerturn]
     hasownpos = playerpos in hand
-    stationcities = [c for (c, s) in g.stations if s]
+    stationcities = [c for (c, s) in enumerate(g.stations) if s]
 
     # NOTE: we create these without checks since they're derived from game state
     # TODO: test this
@@ -113,7 +115,7 @@ function possiblemoves(g::Game)::Vec{PlayerAction}
     # Movement
     drive = [
         PlayerAction(atype = Drive, dest = c) for
-        c in allneighbors(g.world.cities, playerpos)
+        c in all_neighbors(g.world.graph, playerpos)
     ]
     direct = [PlayerAction(atype = DirectFlight, dest = c) for c in hand if c != playerpos]
     charter = if hasownpos
@@ -125,7 +127,10 @@ function possiblemoves(g::Game)::Vec{PlayerAction}
         []
     end
     shuttle = if g.stations[playerpos]
-        [PlayerAction(atype = ShuttleFlight, dest = c) for c in cities if c != playerpos]
+        [
+            PlayerAction(atype = ShuttleFlight, dest = c) for
+            c in g.world.cities if c != playerpos
+        ]
     else
         []
     end
@@ -142,12 +147,14 @@ function possiblemoves(g::Game)::Vec{PlayerAction}
             numcards = count(hand) do c
                 g.world.cities[c].colour == d
             end
-            numcards >= CARDS_TO_CURE
+            numcards >= Pandemic.CARDS_TO_CURE
         end
     ]
 
-    treatdisease =
-        [PlayerAction(atype = TreatDisease, disease = d) for d in g.cubes(playerloc, :)]
+    treatdisease = [
+        PlayerAction(atype = TreatDisease, treated = Disease(d)) for
+        (d, c) in enumerate(g.cubes[playerpos, :]) if c > 0
+    ]
 
     shareknowledge = if hasownpos
         [
@@ -167,8 +174,9 @@ function possiblemoves(g::Game)::Vec{PlayerAction}
         discovercure,
         treatdisease,
         shareknowledge,
-        [Pass],
+        [PlayerAction(atype = Pass)],
     )
 end
+export possiblemoves
 
 end
