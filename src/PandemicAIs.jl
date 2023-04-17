@@ -70,25 +70,42 @@ Using this function otherwise will result in an error.
 function PlayerAction(atype; kwargs...)
     kwargs = Dict(kwargs)
 
-    toret = PlayerAction(atype = atype)
-
 #! format: off
     @match atype begin
-        Drive || DirectFlight || CharterFlight || ShuttleFlight => begin
-            toret.dest = kwargs[:dest]
+        Drive || DirectFlight || CharterFlight || ShuttleFlight =>
+            PlayerAction(atype = atype, dest = kwargs[:dest])
+        DiscoverCure => if haskey(kwargs, :used)
+            PlayerAction(atype = atype, used = kwargs[:used])
+        else
+            PlayerAction(atype = atype)
         end
-        DiscoverCure, if haskey(kwargs, :used) end => begin
-            toret.used = kwargs[:used]
-        end
-        TreatDisease => begin toret.treated = kwargs[:treated] end
-        ShareKnowledge => begin toret.target = kwargs[:target] end
+        TreatDisease => PlayerAction(atype = atype, treated = kwargs[:treated])
+        ShareKnowledge => PlayerAction(atype = atype, target = kwargs[:target])
+        _ => PlayerAction(atype = atype)
     end
 #! format: on
-
-    return toret
 end
 
-# TODO: add companion function which can cull the list after a move without reperforming all checks
+# TODO: the matches in the above and below functions are bugged
+
+function Base.show(io::IO, act::PlayerAction)
+    show(io, act.atype)
+
+#! format: off
+    @match act.atype begin
+        Drive || DirectFlight || CharterFlight || ShuttleFlight => print(io, " dest=$(act.dest)")
+        DiscoverCure => if haskey(kwargs, :used)
+            print(io, " used=$(act.used)")
+        else
+            print(io, " used=auto")
+        end
+        TreatDisease => print(io, " treated=$(act.treated)")
+        ShareKnowledge => print(io, " target=$(act.target)")
+    end
+#! format: on
+end
+
+# TODO: add companion function which can mutate the list after a move without reperforming all checks
 """
     possiblemoves(game)
 
@@ -117,59 +134,63 @@ function possiblemoves(g::Game)::Vector{PlayerAction}
     # NOTE: we create these without checks since they're derived from game state
     # TODO: test this
 
-    # TODO: faster if we initialise this as a flat array and push to it element by element?
-    actions = [[PlayerAction(atype = Pass)]]
+    actions = [PlayerAction(atype = Pass)]
 
     # Movement
     # Drive
-    push!(actions, [Act(atype = Drive, dest = c) for c in neighbours])
+    for c in neighbours
+        push!(actions, Act(atype = Drive, dest = c))
+    end
     # Direct Flight
-    push!(actions, [Act(atype = DirectFlight, dest = c) for c in hand if nc(c)])
+    for c in filter(nc, hand)
+        push!(actions, Act(atype = DirectFlight, dest = c))
+    end
     # Charter Flight
     if hasownpos
-        push!(actions, [Act(atype = CharterFlight, dest = c) for c in cities if nc(c)])
+        for c in filter(nc, cities)
+            push!(actions, Act(atype = CharterFlight, dest = c))
+        end
     end
     # Shuttle Flight
     if g.stations[pos]
-        push!(
-            actions,
-            [Act(atype = ShuttleFlight, dest = c) for c in stationcities if nc(c)],
-        )
+        for c in filter(nc, stationcities)
+            push!(actions, Act(atype = ShuttleFlight, dest = c))
+        end
     end
 
+    # Build Station
     if hasownpos && !(pos in stationcities)
-        push!(actions, [Act(atype = BuildStation)])
+        push!(actions, Act(atype = BuildStation))
     end
 
-    push!(
-        actions,
-        [
-            Act(atype = DiscoverCure, cured = dis) for
-            dis in filter(instances(Disease)) do d
-                count(c -> cities[c].colour == d, hand) >= Pandemic.CARDS_TO_CURE
-            end
-        ],
-    )
+    # Discover Cure
+    if g.stations[pos]
+        # Check if relevant cards in hand
+        diseasesinpos = filter(instances(Disease)) do d
+            count(c -> cities[c].colour == d, hand) >= Pandemic.CARDS_TO_CURE
+        end
+        for d in diseasesinpos
+            push!(actions, Act(atype = DiscoverCure, cured = dis))
+        end
+    end
 
-    push!(
-        actions,
-        [
-            Act(atype = TreatDisease, treated = Disease(d)) for
-            (d, c) in enumerate(g.cubes[pos, :]) if c > 0
-        ],
-    )
+    # Treat Disease
+    for (d, c) in enumerate(g.cubes[pos, :])
+        if c > 0
+            push!(actions, Act(atype = TreatDisease, treated = Disease(d)))
+        end
+    end
 
+    # Share Knowledge
     if hasownpos
-        push!(
-            actions,
-            [
-                Act(atype = ShareKnowledge, target = p) for
-                (p, l) in enumerate(g.playerlocs) if l == pos
-            ],
-        )
+        for (p, l) in enumerate(g.playerlocs)
+            if l == pos
+                push!(actions, Act(atype = ShareKnowledge, target = p))
+            end
+        end
     end
 
-    return vcat(actions...)
+    return actions
 end
 export possiblemoves
 
