@@ -3,8 +3,10 @@ using PandemicAIs
 using Random
 using SumTypes
 
+# TODO: this definitely needs more testing
 @testset "possibleactions" begin
-    import PandemicAIs: Drive, DirectFlight, CharterFlight, ShuttleFlight, BuildStation, DiscoverCure, TreatDisease, ShareKnowledge, Pass
+    using PandemicAIs.Actions
+
     map = Pandemic.Maps.circle12()
     map_starter_locs = [
         Drive(3),
@@ -45,7 +47,7 @@ using SumTypes
     end
 
     # Random setup, test properties we always know are there
-    # TODO: is there some kind of property testing framework we can use
+    # TODO: is there some kind of property testing framework we can use?
     begin
         game = Pandemic.newgame(map, Pandemic.Introductory, 4)
 
