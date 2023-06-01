@@ -10,13 +10,14 @@ using Pandemic: Disease
 
 export Pandemic
 
-"""
-    PlayerAction{C}
-
-Sum type of actions available to a given player in a given game state.
-
-Obtained with [`possibleactions`](@ref).
-"""
+# Commented out pending https://github.com/MasonProtter/SumTypes.jl/issues/32
+# """
+#     PlayerAction{C}
+#
+# Sum type of actions available to a given player in a given game state.
+#
+# Obtained with [`possibleactions`](@ref).
+# """
 @sum_type PlayerAction{C} begin
     Drive{C}(dest::C)
     DirectFlight{C}(dest::C)
