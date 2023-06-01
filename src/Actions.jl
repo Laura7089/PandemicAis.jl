@@ -48,6 +48,36 @@ function ismove(act::PlayerAction)::bool
     end
 end
 
+"""
+    resolve!(game, action)
+
+Play `action` as the current player of `game`, in the current state.
+
+Mutates `game`.
+Calls [`Pandemic.Actions.advanceaction!`](@ref) after the action has been performed and returns the result.
+"""
+function resolve!(g::Pandemic.Game, act::PlayerAction)::Tuple{Bool, Bool}
+    PActions = Pandemic.Actions
+    p = g.playerturn
+    ploc = g.playerlocs[p]
+    # TODO: ensure all invalid actions throw errors when this is called
+    @cases act begin
+        Drive(c) => Pandemic.Actions.move_one!(g, p, c)
+        DirectFlight(c) => PActions.move_direct!(g, p, c)
+        CharterFlight(c) => PActions.move_chartered!(g, p, c)
+        ShuttleFlight(c) => PActions.move_station!(g, p, c)
+        # TODO: this will crash if we have all stations in play
+        BuildStation => PActions.build_station!(g, p, g.playerlocs[p])
+        DiscoverCure(d) => PActions.findcure!(g, p, d)
+        # TODO: this doesn't provide a way to treat disease cubes which aren't in the city
+        TreatDisease => PActions.treat_disease!(g, p, ploc, g.world.cities[ploc].disease)
+        ShareKnowledge(p2) => PActions.shareknowledge!(g, p, p2, ploc)
+        Pass => PActions.pass!(g)
+    end
+
+    return PActions.advanceaction!(g)
+end
+
 # TODO: add companion function which can mutate the list after a move without reperforming all checks
 """
     possibleactions(game)

@@ -2,7 +2,7 @@
 
 julia_version = "1.9.0"
 manifest_format = "2.0"
-project_hash = "8373588edd3f8d2013433d3a219b9c23a5e57316"
+project_hash = "2e5d80cce69cca9d3bcca7fbc10b059906eeb92e"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -170,7 +170,7 @@ version = "1.4.1"
 
 [[deps.Pandemic]]
 deps = ["EzXML", "GraphIO", "Graphs", "Logging", "Match", "Parameters", "PrecompileTools", "Random"]
-git-tree-sha1 = "c5cc3184cd2094bd4afaa823aee131b6f8ecff85"
+git-tree-sha1 = "c1479c2e4f09b25adb066dd380a9fdc054e1f409"
 repo-rev = "main"
 repo-url = "https://github.com/Laura7089/Pandemic.jl"
 uuid = "2f1a64cf-8e1a-4d5e-af1d-3b57a049fca1"
