@@ -2,7 +2,7 @@
 
 julia_version = "1.9.0"
 manifest_format = "2.0"
-project_hash = "59738f7da94c340a4318e9ecd38c55c52b181866"
+project_hash = "2e5d80cce69cca9d3bcca7fbc10b059906eeb92e"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -261,6 +261,12 @@ version = "1.9.0"
 deps = ["Artifacts", "Libdl", "Pkg", "libblastrampoline_jll"]
 uuid = "bea87d4a-7f5b-5778-9afe-8cc45184846c"
 version = "5.10.1+6"
+
+[[deps.SumTypes]]
+deps = ["MacroTools"]
+git-tree-sha1 = "e0e51bf3a5b5da19868e5f78203f7aeef0d985da"
+uuid = "8e1ec7a9-0e02-4297-b0fe-6433085c89f2"
+version = "0.4.4"
 
 [[deps.TOML]]
 deps = ["Dates"]

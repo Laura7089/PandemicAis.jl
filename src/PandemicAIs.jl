@@ -3,51 +3,31 @@ module PandemicAIs
 using Parameters
 using Match
 using Graphs
+using SumTypes
 
 using Pandemic
 using Pandemic: Disease
 
 export Pandemic
 
-module PlayerActions
-    using Pandemic: Disease
+"""
+    PlayerAction{C}
 
-    """
-        Action
+Sum type of actions available to a given player in a given game state.
 
-    Some action taken by a player, costing one action point.
-
-    See also [`Drive`](@ref), [`DirectFlight`](@ref), [`CharterFlight`](@ref), [`ShuttleFlight`](@ref), [`BuildStation`](@ref), [`DiscoverCure`](@ref), [`TreatDisease`](@ref), [`ShareKnowledge`](@ref), [`Pass`](@ref).
-    """
-    abstract type Action end
-    export Action
-
-    struct Drive{C} <: Action
-        dest::C
-    end
-    struct DirectFlight{C} <: Action
-        dest::C
-    end
-    struct CharterFlight{C} <: Action
-        dest::C
-    end
-    struct ShuttleFlight{C} <: Action
-        dest::C
-    end
-    struct BuildStation <: Action end
-    struct DiscoverCure{C} <: Action
-        usedcards::Union{Vector{C},Nothing}
-    end
-    struct TreatDisease <: Action
-        disease::Disease
-    end
-    struct ShareKnowledge <: Action
-        targetplayer::Int
-    end
-    struct Pass <: Action end
+Obtained with [`possibleactions`](@ref).
+"""
+@sum_type PlayerAction{C} begin
+    Drive{C}(dest::C)
+    DirectFlight{C}(dest::C)
+    CharterFlight{C}(dest::C)
+    ShuttleFlight{C}(dest::C)
+    BuildStation
+    DiscoverCure{C}(dest::C, cards::Vector{C})
+    TreatDisease(target::Disease)
+    ShareKnowledge(player::Int)
+    Pass
 end
-using .PlayerActions
-export PlayerActions
 
 # TODO: add companion function which can mutate the list after a move without reperforming all checks
 """
@@ -60,7 +40,7 @@ Given `game`, find all possible legal moves for the current player (`game.player
 - For the [`DiscoverCure`](@ref) action in particular, the returned [`Action`](@ref) does **not** contain the cards that will be used.
   These must be added through some other means if desired.
 """
-function possibleactions(g::Game)::Vector{Action}
+function possibleactions(g::Game)::Vector{PlayerAction}
     if g.state != Pandemic.Playing
         return []
     end
@@ -77,34 +57,34 @@ function possibleactions(g::Game)::Vector{Action}
     # NOTE: we create these without checks since they're derived from game state
     # TODO: test this
 
-    actions = Vector{Action}(undef, 0)
-    push!(actions, PlayerActions.Pass)
+    actions = Vector{PlayerAction}(undef, 0)
+    push!(actions, Pass)
 
     # Movement
     # Drive
     for c in neighbours
-        push!(actions, PlayerActions.Drive(c))
+        push!(actions, Drive(c))
     end
     # Direct Flight
     for c in filter(nc, hand)
-        push!(actions, PlayerActions.DirectFlight(c))
+        push!(actions, DirectFlight(c))
     end
     # Charter Flight
     if hasownpos
         for c in filter(nc, cities)
-            push!(actions, PlayerActions.CharterFlight(c))
+            push!(actions, CharterFlight(c))
         end
     end
     # Shuttle Flight
     if g.stations[pos]
         for c in filter(nc, stationcities)
-            push!(actions, PlayerActions.ShuttleFlight(c))
+            push!(actions, ShuttleFlight(c))
         end
     end
 
     # Build Station
     if hasownpos && !(pos in stationcities)
-        push!(actions, Act(atype = BuildStation))
+        push!(actions, BuildStation)
     end
 
     # Discover Cure
@@ -114,14 +94,14 @@ function possibleactions(g::Game)::Vector{Action}
             count(c -> cities[c].colour == d, hand) >= Pandemic.CARDS_TO_CURE
         end
         for d in diseasesinpos
-            push!(actions, PlayerActions.DiscoverCure(dis))
+            push!(actions, DiscoverCure(dis))
         end
     end
 
     # Treat Disease
     for (d, c) in enumerate(g.cubes[pos, :])
         if c > 0
-            push!(actions, Act(atype = TreatDisease, treated = Disease(d)))
+            push!(actions, TreatDisease(Disease(d)))
         end
     end
 
@@ -129,7 +109,7 @@ function possibleactions(g::Game)::Vector{Action}
     if hasownpos
         for (p, l) in enumerate(g.playerlocs)
             if l == pos
-                push!(actions, PlayerActions.ShareKnowledge(p))
+                push!(actions, ShareKnowledge(p))
             end
         end
     end
