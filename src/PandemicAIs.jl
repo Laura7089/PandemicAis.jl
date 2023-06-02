@@ -11,13 +11,11 @@ export Pandemic
 using PrecompileTools
 
 """
-    isterminal!(game)
+    isterminal(game)
 
-Checks if `game` is in a terminal state, with [`Pandemic.checkstate!`](@ref).
+Checks if `game` is in a terminal state.
 """
-function isterminal!(game)::Bool
-    Pandemic.checkstate!(game) != Pandemic.Playing
-end
+isterminal(game) = Pandemic.checkstate(game) != Pandemic.Playing
 
 @compile_workload begin
     map = Pandemic.Maps.vanillamap()

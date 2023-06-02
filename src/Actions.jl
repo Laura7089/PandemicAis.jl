@@ -114,7 +114,7 @@ Given `game`, find all possible legal moves for the current player (`game.player
   These must be added through some other means if desired.
 """
 function possibleactions(g::Pandemic.Game)::Vector{PlayerAction}
-    if g.state != Pandemic.Playing
+    if Pandemic.checkstate(g) != Pandemic.Playing
         return []
     end
 

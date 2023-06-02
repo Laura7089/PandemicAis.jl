@@ -10,7 +10,7 @@ planner = solve(solver, mdp)
 
 actions = []
 
-while Pandemic.checkstate!(g) == Pandemic.Playing
+while !PandemicAIs.isterminal(g)
     next_act = action(planner, g)
     push!(actions, next_act)
     println(next_act)
