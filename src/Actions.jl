@@ -69,12 +69,14 @@ function ismove(act::PlayerAction)::Bool
         Pass => false
     end
 end
+export ismove
 
 """
     resolve!(game, action)
 
 Play `action` as the current player of `game`, in the current state.
 
+Pass a non-empty `AbstractVector` as `action` to perform a sequence of actions.
 Mutates `game`.
 Calls [`Pandemic.Actions.advanceaction!`](@ref) after the action has been performed and returns the result.
 
@@ -101,13 +103,24 @@ function resolve!(g::Pandemic.Game, act::PlayerAction; rng=nothing)::Tuple{Bool,
 
     return PActions.advanceaction!(g; rng=rng)
 end
+function resolve!(g::Game, acts::AbstractVector{PlayerAction}; rng=nothing)::Tuple{Bool, Bool}
+    if length(acts) == 0
+        throw(error("empty action set passed"))
+    end
+
+    for act in acts.path[1:length(acts)-1]
+        resolve!(g, act; rng=rng)
+    end
+
+    return resolve!(g, last(acts); rng=rng)
+end
 
 """
     resolveandbranch(game, action)
 
 Same as with [`resolve!`](@ref) but clones `game` and returns it.
 
-The first item of the tuple is the mutated copy of `game`, the latter two are those from [`advanceaction!`](@ref).
+The first item of the tuple is the mutated copy of `game`, the latter two are those from [`resolve!`](@ref).
 """
 function resolveandbranch(
     g::Pandemic.Game,

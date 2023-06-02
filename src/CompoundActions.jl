@@ -2,7 +2,7 @@
 """
     CompoundActions
 
-Contains logic for creating "compound actions"([`CompoundActions.CompoundAction`](@ref)) from regular [`PandemicAIs.PlayerAction`](@ref)s.
+Logic for creating "compound actions" from regular [`PandemicAIs.PlayerAction`](@ref)s.
 
 Inspired by the "macro actions" found in the work of Sfikas and Liapis[1].
 
@@ -13,9 +13,25 @@ module CompoundActions
 using SumTypes
 using Pandemic
 using PandemicAIs
+using PandemicAIs.Actions
+using Pandemic.Graphs
 
-@sum_type CompoundAction{C} begin
+"""
+    possiblecompounds(game)
 
+Calculate all possible "compound actions" available to the current player in `game`.
+
+# Notes
+
+- All sequences consist of zero or more move actions, followed by an optional other action
+- If a move sequence which spends no cards for a particular destination is found, only that sequence will be used to move there
+- No sequences which lead beyond the end of the player's turn will be examined
+"""
+function possiblecompounds(game)
+    acts = []
+    foundmoves = []
+
+    # TODO
 end
-
+export possiblecompounds
 end

@@ -1,7 +1,7 @@
 module PandemicAIs
 
-include("./CompoundActions.jl")
 include("./Actions.jl")
+include("./CompoundActions.jl")
 
 include("./POMDPAdaptors.jl")
 
