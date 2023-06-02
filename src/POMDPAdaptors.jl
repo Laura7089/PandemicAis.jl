@@ -9,18 +9,23 @@ using POMDPs
 using QuickPOMDPs
 
 using PandemicAIs
+import PandemicAIs: Actions
 
 function getquickmdp()
     # TODO: use the `_rng` arg
-    genfunc =
-        (cur, act, _rng) -> (sp = PandemicAIs.Actions.branchandresolve(cur, act), r = 1.0)
+    function genfunc(cur, act, _rng)
+        next = Actions.resolveandbranch(cur, act)[1]
+        # De-incentivise doing nothing
+        reward = if act == Actions.Pass 0.0 else 1.0 end
+        (sp = next, r = reward)
+    end
     isterminal = (state) -> Pandemic.checkstate!(state) != Pandemic.Playing
 
     QuickMDP(
         genfunc,
-        actions = PandemicAIs.Actions.possibleactions,
-        statetype = PandemicAIs.Pandemic.Game,
-        actiontype = PandemicAIs.Actions.PlayerAction,
+        actions = Actions.possibleactions,
+        statetype = Pandemic.Game,
+        actiontype = Actions.PlayerAction,
         isterminal = isterminal,
     )
 end
