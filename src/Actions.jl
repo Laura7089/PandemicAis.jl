@@ -37,6 +37,20 @@ export Drive,
     ShareKnowledge,
     Pass
 
+function Base.show(io::IO, act::PlayerAction)
+    @cases act begin
+        Drive(c) => write(io, "goto $c")
+        DirectFlight(c) => write(io, "direct to $c")
+        CharterFlight(c) => write(io, "charter to $c")
+        ShuttleFlight(c) => write(io, "shuttle to $c")
+        BuildStation => write(io, "build station")
+        DiscoverCure(d, _) => write(io, "cure $d")
+        TreatDisease(d) => write(io, "treat $d")
+        ShareKnowledge(p) => write(io, "share with $p")
+        Pass => write(io, "pass")
+    end
+end
+
 """
     ismove(action)
 
