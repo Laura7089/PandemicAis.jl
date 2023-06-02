@@ -75,10 +75,10 @@ function resolve!(g::Pandemic.Game, act::PlayerAction)::Tuple{Bool,Bool}
         CharterFlight(c) => PActions.move_chartered!(g, p, c)
         ShuttleFlight(c) => PActions.move_station!(g, p, c)
         # TODO: this will crash if we have all stations in play
-        BuildStation => PActions.build_station!(g, p, g.playerlocs[p])
+        BuildStation => PActions.buildstation!(g, p, g.playerlocs[p])
         DiscoverCure(d) => PActions.findcure!(g, p, d)
         # TODO: this doesn't provide a way to treat disease cubes which aren't in the city
-        TreatDisease => PActions.treatdisease!(g, p, ploc, g.world.cities[ploc].disease)
+        TreatDisease => PActions.treatdisease!(g, p, ploc, g.world.cities[ploc].colour)
         ShareKnowledge(p2) => PActions.shareknowledge!(g, p, p2, ploc)
         Pass => PActions.pass!(g)
     end
