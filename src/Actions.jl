@@ -34,7 +34,7 @@ export Drive, DirectFlight, CharterFlight, ShuttleFlight, BuildStation, Discover
 
 Returns `true` if the action is a movement actions, otherwise `false`.
 """
-function ismove(act::PlayerAction)::bool
+function ismove(act::PlayerAction)::Bool
     @cases act begin
         Drive => true
         DirectFlight => true
@@ -76,6 +76,19 @@ function resolve!(g::Pandemic.Game, act::PlayerAction)::Tuple{Bool, Bool}
     end
 
     return PActions.advanceaction!(g)
+end
+
+"""
+    resolveandbranch(game, action)
+
+Same as with [`resolve!`](@ref) but clones `game` and returns it.
+
+The first item of the tuple is the mutated copy of `game`, the latter two are those from [`advanceaction!`](@ref).
+"""
+function resolveandbranch(g::Pandemic.Game, act::PlayerAction)::Tuple{Pandemic.Game, Bool, Bool}
+    gc = deepcopy(g)
+    r = resolve!(gc, act)
+    return (gc, r[1], r[2])
 end
 
 # TODO: add companion function which can mutate the list after a move without reperforming all checks
@@ -142,7 +155,7 @@ function possibleactions(g::Pandemic.Game)::Vector{PlayerAction}
             count(c -> cities[c].colour == d, hand) >= Pandemic.CARDS_TO_CURE
         end
         for d in diseasesinpos
-            push!(actions, DiscoverCure(dis))
+            push!(actions, DiscoverCure(dis, []))
         end
     end
 
