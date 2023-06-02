@@ -78,7 +78,7 @@ function resolve!(g::Pandemic.Game, act::PlayerAction)::Tuple{Bool,Bool}
         BuildStation => PActions.buildstation!(g, p, g.playerlocs[p])
         DiscoverCure(d) => PActions.findcure!(g, p, d)
         # TODO: this doesn't provide a way to treat disease cubes which aren't in the city
-        TreatDisease => PActions.treatdisease!(g, p, ploc, g.world.cities[ploc].colour)
+        TreatDisease(d) => PActions.treatdisease!(g, p, ploc, d)
         ShareKnowledge(p2) => PActions.shareknowledge!(g, p, p2, ploc)
         Pass => PActions.pass!(g)
     end
