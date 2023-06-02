@@ -46,9 +46,8 @@ end
 
 
 function getquickmdp()
-    # TODO: use the `_rng` arg
-    function genfunc(cur, act, _rng)
-        next = Actions.resolveandbranch(cur, act)[1]
+    function genfunc(cur, act, rng)
+        next = Actions.resolveandbranch(cur, act; rng=rng)[1]
         reward = basicreward(next, act)
         (sp = next, r = reward)
     end
