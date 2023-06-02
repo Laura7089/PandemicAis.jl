@@ -27,7 +27,15 @@ using Pandemic: Disease
 end
 
 export PlayerAction
-export Drive, DirectFlight, CharterFlight, ShuttleFlight, BuildStation, DiscoverCure, TreatDisease, ShareKnowledge, Pass
+export Drive,
+    DirectFlight,
+    CharterFlight,
+    ShuttleFlight,
+    BuildStation,
+    DiscoverCure,
+    TreatDisease,
+    ShareKnowledge,
+    Pass
 
 """
     ismove(action)
@@ -56,7 +64,7 @@ Play `action` as the current player of `game`, in the current state.
 Mutates `game`.
 Calls [`Pandemic.Actions.advanceaction!`](@ref) after the action has been performed and returns the result.
 """
-function resolve!(g::Pandemic.Game, act::PlayerAction)::Tuple{Bool, Bool}
+function resolve!(g::Pandemic.Game, act::PlayerAction)::Tuple{Bool,Bool}
     PActions = Pandemic.Actions
     p = g.playerturn
     ploc = g.playerlocs[p]
@@ -70,7 +78,7 @@ function resolve!(g::Pandemic.Game, act::PlayerAction)::Tuple{Bool, Bool}
         BuildStation => PActions.build_station!(g, p, g.playerlocs[p])
         DiscoverCure(d) => PActions.findcure!(g, p, d)
         # TODO: this doesn't provide a way to treat disease cubes which aren't in the city
-        TreatDisease => PActions.treat_disease!(g, p, ploc, g.world.cities[ploc].disease)
+        TreatDisease => PActions.treatdisease!(g, p, ploc, g.world.cities[ploc].disease)
         ShareKnowledge(p2) => PActions.shareknowledge!(g, p, p2, ploc)
         Pass => PActions.pass!(g)
     end
@@ -85,7 +93,10 @@ Same as with [`resolve!`](@ref) but clones `game` and returns it.
 
 The first item of the tuple is the mutated copy of `game`, the latter two are those from [`advanceaction!`](@ref).
 """
-function resolveandbranch(g::Pandemic.Game, act::PlayerAction)::Tuple{Pandemic.Game, Bool, Bool}
+function resolveandbranch(
+    g::Pandemic.Game,
+    act::PlayerAction,
+)::Tuple{Pandemic.Game,Bool,Bool}
     gc = deepcopy(g)
     r = resolve!(gc, act)
     return (gc, r[1], r[2])

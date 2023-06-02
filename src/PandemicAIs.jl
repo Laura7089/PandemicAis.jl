@@ -2,7 +2,8 @@ module PandemicAIs
 
 include("./CompoundActions.jl")
 include("./Actions.jl")
-using .Actions
+
+include("./POMDPAdaptors.jl")
 
 using Pandemic
 export Pandemic
