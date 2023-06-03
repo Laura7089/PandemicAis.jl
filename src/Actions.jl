@@ -184,7 +184,7 @@ function possiblemoves(g::Pandemic.Game)::Vector{PlayerAction}
     end
     # Charter Flight
     if hasownpos
-        for c in filter(nc, cities)
+        for c in filter(nc, map(city -> Pandemic.cityindex(g.world, city), cities))
             push!(moves, CharterFlight(c))
         end
     end
@@ -236,7 +236,7 @@ function possiblenonmoves(g::Pandemic.Game)::Vector{PlayerAction}
             count(c -> cities[c].colour == d, hand) >= Pandemic.CARDS_TO_CURE
         end
         for d in diseasesinpos
-            push!(actions, DiscoverCure(dis, []))
+            push!(actions, DiscoverCure(d, []))
         end
     end
     # Treat Disease
@@ -248,7 +248,8 @@ function possiblenonmoves(g::Pandemic.Game)::Vector{PlayerAction}
     # Share Knowledge
     if hasownpos
         for (p, l) in enumerate(g.playerlocs)
-            if l == pos
+            # We can't share knowledge with ourself
+            if l == pos && p != g.playerturn
                 push!(actions, ShareKnowledge(p))
             end
         end
