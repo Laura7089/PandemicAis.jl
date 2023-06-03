@@ -33,8 +33,6 @@ Play `action` as the current player of `game`, in the current state.
 Pass a non-empty `AbstractVector` as `action` to perform a sequence of actions.
 Mutates `game`.
 Calls [`Pandemic.SingleActions.advanceaction!`](@ref) after the action has been performed and returns the result.
-
-Pass `rng` kwarg to override `game.rng`.
 """
 function resolve!(
     g::Pandemic.Game,
@@ -61,20 +59,37 @@ function resolve!(
 
     return PActions.advanceaction!(g; rng = rng)
 end
+"""
+    resolve!(game, action)
+
+Play the [`CompoundActions.CompoundAction`](@ref) `action` out from on `game`.
+
+If a component of `action` ends the game, this function will stop iterating.
+Returns `(l, r)` where `l` indicates if the player turn changed and `r` indicates if the round changed.
+
+Pass `rng` kwarg to override `game.rng`.
+"""
 function resolve!(
     g::Game,
-    acts::AbstractVector{SingleActions.PlayerAction};
+    acts::CompoundActions.CompoundAction;
     rng = nothing,
 )::Tuple{Bool,Bool}
     if length(acts) == 0
         throw(error("empty action set passed"))
     end
+    turnchanged = false
+    roundchanged = false
 
-    for act in acts.path[1:length(acts)-1]
-        resolve!(g, act; rng = rng)
+    for act in acts
+        l, r = resolve!(g, act; rng = rng)
+        turnchanged |= l
+        roundchanged |= r
+        if l && isterminal(g)
+            break
+        end
     end
 
-    return resolve!(g, last(acts); rng = rng)
+    return (turnchanged, roundchanged)
 end
 export resolve!
 
@@ -83,7 +98,7 @@ export resolve!
 
 Same as with [`resolve!`](@ref) but clones `game` and returns it.
 
-The first item of the tuple is the mutated copy of `game`, the latter two are those from [`resolve!`](@ref).
+The first item of the returned tuple is the mutated copy of `game`, the latter two are those from [`resolve!`](@ref).
 """
 function resolveandbranch(
     g::Pandemic.Game,

@@ -115,6 +115,18 @@ end
 export possiblecompounds
 
 """
+    possiblefullcompounds(g)
+
+As with [`possiblecompounds`](@ref), but only return actions which would end the player's turn.
+"""
+function possiblefullcompounds(g)
+    na = g.actionsleft
+    acts = possiblecompounds(g)
+    filter!(ca -> length(ca) == na, acts)
+    return acts
+end
+
+"""
     terminalact(comaction)
 
 Get the final [`SingleActions.PlayerAction`] from `comaction`.
@@ -136,5 +148,29 @@ function finalcity(ca::CompoundAction)
     ca[ind] |> dest
 end
 export finalcity
+
+# TODO: test this
+"""
+    cull(game, comaction)
+
+Remove components of a compound action that would happen after the game ended.
+
+If the game wouldn't end, returns the action as-is.
+This has no effect on the output of [`possiblecompounds`](@ref).
+"""
+function cull(game, ca::CompoundAction)::CompoundAction
+    culled = []
+
+    g = deepcopy(game)
+    for act in acts
+        l, r = resolve!(g, act; rng = rng)
+        push!(culled, act)
+        if l && isterminal(g)
+            break
+        end
+    end
+
+    return culled
+end
 
 end

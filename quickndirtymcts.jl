@@ -3,23 +3,13 @@
 using MCTS
 using PandemicAIs
 using PandemicAIs.SingleActions
+using PandemicAIs.CompoundActions
 using POMDPs
 using POMDPTools
 using SumTypes
 using Logging
 
-# global_logger(SimpleLogger(Logging.Debug))
-
-function basicreward(prevstate, action, state)::Float64
-    gs = Pandemic.checkstate(state)
-
-    if state == Pandemic.Lost
-        return -100.0
-    end
-    if state == Pandemic.Won
-        return 1000.0
-    end
-
+function basicreward(action)::Float64
     return @cases action begin
         Pass => -5.0
         CharterFlight => -5.0
@@ -33,8 +23,37 @@ function basicreward(prevstate, action, state)::Float64
     end
 end
 
-g = Pandemic.newgame(Pandemic.Maps.vanillamap(), Pandemic.Settings(2, Pandemic.Introductory))
-mdp = PandemicAIs.PODMPAdaptors.quickmdpcompound(basicreward)
+function singlereward(prevstate, action, state)::Float64
+    gs = Pandemic.checkstate(state)
+    if gs == Pandemic.Lost
+        return -100.0
+    elseif gs == Pandemic.Won
+        return 1000.0
+    end
+
+    return basicreward(action)
+end
+
+function compoundreward(prevstate, caction, state)::Float64
+    gs = Pandemic.checkstate(state)
+    if gs == Pandemic.Lost
+        return -100.0
+    elseif gs == Pandemic.Won
+        return 1000.0
+    end
+
+    return map(basicreward, caction) |> sum
+end
+
+g = Pandemic.newgame(
+    Pandemic.Maps.vanillamap(),
+    Pandemic.Settings(
+        2,
+        Pandemic.Introductory;
+        cards_to_cure=2,
+    ),
+)
+mdp = PandemicAIs.PODMPAdaptors.quickmdpfullcompound(compoundreward)
 solver = MCTSSolver()
 planner = solve(solver, mdp)
 
@@ -49,23 +68,11 @@ for (n, (s, a, _, r)) in enumerate(stepthrough(mdp, planner, g))
     p = s.playerturn
     println("p$p: $a (reward $r)")
 
-    nextstate = with_logger(SimpleLogger(Logging.Debug)) do
-        resolveandbranch(s, a)[1]
+    nextstate, gs = with_logger(SimpleLogger(Logging.Info)) do
+        ns = resolveandbranch(s, a)[1]
+        (ns, Pandemic.checkstate(ns))
     end
-    gs = with_logger(SimpleLogger(Logging.Debug)) do
-        Pandemic.checkstate(nextstate)
-    end
-
-    if n % s.settings.actions_per_turn == 0
-        println()
-        println(nextstate)
-        println("lasted $n actions")
-        println()
-    end
+    println(nextstate)
+    println("$n turns taken")
+    println()
 end
-
-# while !PandemicAIs.isterminal(g)
-#     next_act = action(planner, g)
-#     println(next_act)
-#     resolve!(g, next_act)
-# end

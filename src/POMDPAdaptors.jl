@@ -10,7 +10,7 @@ using POMDPTools
 using QuickPOMDPs
 
 using PandemicAIs
-import PandemicAIs: SingleActions
+import PandemicAIs: SingleActions, CompoundActions
 
 function quickmdpsingle(reward)
     QuickMDP(
@@ -26,6 +26,17 @@ end
 function quickmdpcompound(reward)
     QuickMDP(
         actions = CompoundActions.possiblecompounds,
+        transition = (s, a) -> Deterministic(resolveandbranch(s, a)[1]),
+        statetype = Pandemic.Game,
+        actiontype = CompoundActions.CompoundAction,
+        isterminal = PandemicAIs.isterminal,
+        reward = reward,
+    )
+end
+
+function quickmdpfullcompound(reward)
+    QuickMDP(
+        actions = CompoundActions.possiblefullcompounds,
         transition = (s, a) -> Deterministic(resolveandbranch(s, a)[1]),
         statetype = Pandemic.Game,
         actiontype = CompoundActions.CompoundAction,
