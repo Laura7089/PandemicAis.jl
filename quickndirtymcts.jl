@@ -36,7 +36,7 @@ function basicreward(prevstate, action, state)::Float64
     #     return -2.0
     # end
     # if action == Actions.DiscoverCure
-	# return 100.0
+    # return 100.0
     # end
 
     # return -1.0
@@ -59,17 +59,17 @@ for (n, (s, a, _, r)) in enumerate(stepthrough(mdp, planner, g))
     println("p$p: $a (reward $r)")
 
     nextstate = with_logger(SimpleLogger(Logging.Debug)) do
-	Actions.resolveandbranch(s, a)[1]
+        Actions.resolveandbranch(s, a)[1]
     end
     gs = with_logger(SimpleLogger(Logging.Debug)) do
-	Pandemic.checkstate(nextstate)
+        Pandemic.checkstate(nextstate)
     end
 
     if n % Pandemic.ACTIONS_PER_TURN == 0
-	println()
-	println(nextstate)
-	println("lasted $n actions")
-	println()
+        println()
+        println(nextstate)
+        println("lasted $n actions")
+        println()
     end
 end
 

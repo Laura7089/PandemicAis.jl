@@ -82,7 +82,7 @@ Calls [`Pandemic.Actions.advanceaction!`](@ref) after the action has been perfor
 
 Pass `rng` kwarg to override `game.rng`.
 """
-function resolve!(g::Pandemic.Game, act::PlayerAction; rng=nothing)::Tuple{Bool,Bool}
+function resolve!(g::Pandemic.Game, act::PlayerAction; rng = nothing)::Tuple{Bool,Bool}
     PActions = Pandemic.Actions
     p = g.playerturn
     ploc = g.playerlocs[p]
@@ -101,18 +101,22 @@ function resolve!(g::Pandemic.Game, act::PlayerAction; rng=nothing)::Tuple{Bool,
         Pass => PActions.pass!(g)
     end
 
-    return PActions.advanceaction!(g; rng=rng)
+    return PActions.advanceaction!(g; rng = rng)
 end
-function resolve!(g::Game, acts::AbstractVector{PlayerAction}; rng=nothing)::Tuple{Bool, Bool}
+function resolve!(
+    g::Game,
+    acts::AbstractVector{PlayerAction};
+    rng = nothing,
+)::Tuple{Bool,Bool}
     if length(acts) == 0
         throw(error("empty action set passed"))
     end
 
     for act in acts.path[1:length(acts)-1]
-        resolve!(g, act; rng=rng)
+        resolve!(g, act; rng = rng)
     end
 
-    return resolve!(g, last(acts); rng=rng)
+    return resolve!(g, last(acts); rng = rng)
 end
 
 """
@@ -125,10 +129,10 @@ The first item of the tuple is the mutated copy of `game`, the latter two are th
 function resolveandbranch(
     g::Pandemic.Game,
     act::PlayerAction;
-    rng=nothing,
+    rng = nothing,
 )::Tuple{Pandemic.Game,Bool,Bool}
     gc = deepcopy(g)
-    r = resolve!(gc, act; rng=rng)
+    r = resolve!(gc, act; rng = rng)
     return (gc, r[1], r[2])
 end
 
