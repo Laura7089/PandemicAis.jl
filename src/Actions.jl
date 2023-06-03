@@ -136,14 +136,28 @@ end
 """
     possibleactions(game)
 
-Given `game`, find all possible legal moves for the current player (`game.playerturn`).
+Given `game`, find all possible legal actions for the current player (`game.playerturn`).
 
 # Notes
 
 - For the [`DiscoverCure`](@ref) action in particular, the returned [`Action`](@ref) does **not** contain the cards that will be used.
   These must be added through some other means if desired.
+
+See also [`possiblemoves`](@ref), [`possiblenonmoves`](@ref).
 """
 function possibleactions(g::Pandemic.Game)::Vector{PlayerAction}
+    vcat(possiblemoves(g), possiblenonmoves(g))
+end
+export possibleactions
+
+"""
+    possiblemoves(game)
+
+Given `game`, find all possible legal **moves** for the current player (`game.playerturn`).
+
+See also [`possibleactions`](@ref), [`possiblenonmoves`](@ref).
+"""
+function possiblemoves(g::Pandemic.Game)::Vector{PlayerAction}
     if Pandemic.checkstate(g) != Pandemic.Playing
         return []
     end
@@ -158,37 +172,63 @@ function possibleactions(g::Pandemic.Game)::Vector{PlayerAction}
     neighbours = all_neighbors(g.world.graph, pos)
 
     # NOTE: we create these without checks since they're derived from game state
+    moves = Vector{PlayerAction}(undef, 0)
 
-    actions = Vector{PlayerAction}(undef, 0)
-    push!(actions, Pass)
-
-    # Movement
     # Drive
     for c in neighbours
-        push!(actions, Drive(c))
+        push!(moves, Drive(c))
     end
     # Direct Flight
     for c in filter(nc, hand)
-        push!(actions, DirectFlight(c))
+        push!(moves, DirectFlight(c))
     end
     # Charter Flight
     if hasownpos
         for c in filter(nc, cities)
-            push!(actions, CharterFlight(c))
+            push!(moves, CharterFlight(c))
         end
     end
     # Shuttle Flight
     if g.stations[pos]
         for c in filter(nc, stationcities)
-            push!(actions, ShuttleFlight(c))
+            push!(moves, ShuttleFlight(c))
         end
     end
+
+    return moves
+end
+
+"""
+    possiblenonmoves(game)
+
+Given `game`, find all possible legal **non-moves** for the current player (`game.playerturn`).
+
+# Notes
+
+- For the [`DiscoverCure`](@ref) action in particular, the returned [`Action`](@ref) does **not** contain the cards that will be used.
+  These must be added through some other means if desired.
+
+See also [`possibleactions`](@ref), [`possiblemoves`](@ref).
+"""
+function possiblenonmoves(g::Pandemic.Game)::Vector{PlayerAction}
+    if Pandemic.checkstate(g) != Pandemic.Playing
+        return []
+    end
+
+    # Various helper vars and aliases
+    pos = g.playerlocs[g.playerturn]
+    hand = g.hands[g.playerturn]
+    hasownpos = pos in hand
+    stationcities = [c for (c, s) in enumerate(g.stations) if s]
+    cities = g.world.cities
+
+    # NOTE: we create these without checks since they're derived from game state
+    actions = PlayerAction[Pass]
 
     # Build Station
     if hasownpos && !(pos in stationcities)
         push!(actions, BuildStation)
     end
-
     # Discover Cure
     if g.stations[pos]
         # Check if relevant cards in hand
@@ -199,14 +239,12 @@ function possibleactions(g::Pandemic.Game)::Vector{PlayerAction}
             push!(actions, DiscoverCure(dis, []))
         end
     end
-
     # Treat Disease
     for (d, c) in enumerate(g.cubes[pos, :])
         if c > 0
             push!(actions, TreatDisease(Disease(d)))
         end
     end
-
     # Share Knowledge
     if hasownpos
         for (p, l) in enumerate(g.playerlocs)
@@ -218,6 +256,5 @@ function possibleactions(g::Pandemic.Game)::Vector{PlayerAction}
 
     return actions
 end
-export possibleactions
 
 end

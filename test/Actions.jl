@@ -19,6 +19,7 @@ function testgame(seed)
 end
 
 # TODO: this definitely needs more testing
+# TODO: make these order independent
 @testset "possibleactions" begin
     # Pre-tested setup
     begin
@@ -26,26 +27,26 @@ end
 
         # Starting state
         @test [
-            Pass,
             Drive(3),
             Drive(4),
             Drive(5),
             Drive(9),
             DirectFlight(2),
             DirectFlight(11),
+            Pass,
             TreatDisease(Pandemic.Yellow),
         ] == possibleactions(game)
 
         # Make a move
         Pandemic.Actions.move_one!(game, 1, 3)
         @test [
-            Pass,
             Drive(1),
             Drive(2),
             Drive(6),
             Drive(12),
             DirectFlight(2),
             DirectFlight(11),
+            Pass,
         ] == possibleactions(game)
 
     end
