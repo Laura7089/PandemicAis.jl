@@ -37,7 +37,7 @@ Calls [`Pandemic.SingleActions.advanceaction!`](@ref) after the action has been 
 function resolve!(
     g::Pandemic.Game,
     act::SingleActions.PlayerAction;
-    rng = nothing,
+    rng = g.rng,
 )::Tuple{Bool,Bool}
     PActions = Pandemic.Actions
     p = g.playerturn
@@ -72,7 +72,7 @@ Pass `rng` kwarg to override `game.rng`.
 function resolve!(
     g::Game,
     acts::CompoundActions.CompoundAction;
-    rng = nothing,
+    rng = g.rng,
 )::Tuple{Bool,Bool}
     if length(acts) == 0
         throw(error("empty action set passed"))
@@ -103,7 +103,7 @@ The first item of the returned tuple is the mutated copy of `game`, the latter t
 function resolveandbranch(
     g::Pandemic.Game,
     act;
-    rng = nothing,
+    rng = g.rng,
 )::Tuple{Pandemic.Game,Bool,Bool}
     gc = deepcopy(g)
     r = resolve!(gc, act; rng = rng)
