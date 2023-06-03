@@ -10,14 +10,14 @@ using POMDPTools
 using QuickPOMDPs
 
 using PandemicAIs
-import PandemicAIs: Actions
+import PandemicAIs: SingleActions
 
 function getquickmdp(reward)
     QuickMDP(
-        actions = Actions.possibleactions,
-        transition = (s, a) -> Deterministic(Actions.resolveandbranch(s, a)[1]),
+        actions = SingleActions.possibleactions,
+        transition = (s, a) -> Deterministic(resolveandbranch(s, a)[1]),
         statetype = Pandemic.Game,
-        actiontype = Actions.PlayerAction,
+        actiontype = SingleActions.PlayerAction,
         isterminal = PandemicAIs.isterminal,
         reward = reward,
     )

@@ -2,7 +2,7 @@
 
 using MCTS
 using PandemicAIs
-using PandemicAIs.Actions
+using PandemicAIs.SingleActions
 using POMDPs
 using POMDPTools
 using SumTypes
@@ -32,10 +32,10 @@ function basicreward(prevstate, action, state)::Float64
         DiscoverCure => 500.0
     end
 
-    # if action == Actions.Pass
+    # if action == Pass
     #     return -2.0
     # end
-    # if action == Actions.DiscoverCure
+    # if action == DiscoverCure
     # return 100.0
     # end
 
@@ -59,7 +59,7 @@ for (n, (s, a, _, r)) in enumerate(stepthrough(mdp, planner, g))
     println("p$p: $a (reward $r)")
 
     nextstate = with_logger(SimpleLogger(Logging.Debug)) do
-        Actions.resolveandbranch(s, a)[1]
+        resolveandbranch(s, a)[1]
     end
     gs = with_logger(SimpleLogger(Logging.Debug)) do
         Pandemic.checkstate(nextstate)
@@ -76,5 +76,5 @@ end
 # while !PandemicAIs.isterminal(g)
 #     next_act = action(planner, g)
 #     println(next_act)
-#     PandemicAIs.Actions.resolve!(g, next_act)
+#     resolve!(g, next_act)
 # end

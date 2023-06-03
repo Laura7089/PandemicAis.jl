@@ -1,8 +1,8 @@
 using Test
-using PandemicAIs
 using Random
 using SumTypes
-using PandemicAIs.Actions
+using PandemicAIs
+using PandemicAIs.SingleActions
 
 MAP = Pandemic.Maps.circle12()
 MAP_STARTER_LOCS = [
@@ -62,7 +62,7 @@ end
 
         old_loc = game.playerlocs[1]
         # TODO: yikes, MLStyle.jl might fix this and similar issues
-        isdirect(m::Actions.PlayerAction) = @cases m begin
+        isdirect(m::SingleActions.PlayerAction) = @cases m begin
             DirectFlight => true
             Drive => false
             CharterFlight => false

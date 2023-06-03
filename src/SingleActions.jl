@@ -1,4 +1,4 @@
-module Actions
+module SingleActions
 
 using SumTypes
 using Graphs
@@ -70,71 +70,6 @@ function ismove(act::PlayerAction)::Bool
     end
 end
 export ismove
-
-"""
-    resolve!(game, action)
-
-Play `action` as the current player of `game`, in the current state.
-
-Pass a non-empty `AbstractVector` as `action` to perform a sequence of actions.
-Mutates `game`.
-Calls [`Pandemic.Actions.advanceaction!`](@ref) after the action has been performed and returns the result.
-
-Pass `rng` kwarg to override `game.rng`.
-"""
-function resolve!(g::Pandemic.Game, act::PlayerAction; rng = nothing)::Tuple{Bool,Bool}
-    PActions = Pandemic.Actions
-    p = g.playerturn
-    ploc = g.playerlocs[p]
-    # TODO: ensure all invalid actions throw errors when this is called
-    @cases act begin
-        Drive(c) => Pandemic.Actions.move_one!(g, p, c)
-        DirectFlight(c) => PActions.move_direct!(g, p, c)
-        CharterFlight(c) => PActions.move_chartered!(g, p, c)
-        ShuttleFlight(c) => PActions.move_station!(g, p, c)
-        # TODO: this will crash if we have all stations in play
-        BuildStation => PActions.buildstation!(g, p, g.playerlocs[p])
-        DiscoverCure(d) => PActions.findcure!(g, p, d)
-        # TODO: this doesn't provide a way to treat disease cubes which aren't in the city
-        TreatDisease(d) => PActions.treatdisease!(g, p, ploc, d)
-        ShareKnowledge(p2) => PActions.shareknowledge!(g, p, p2, ploc)
-        Pass => PActions.pass!(g)
-    end
-
-    return PActions.advanceaction!(g; rng = rng)
-end
-function resolve!(
-    g::Game,
-    acts::AbstractVector{PlayerAction};
-    rng = nothing,
-)::Tuple{Bool,Bool}
-    if length(acts) == 0
-        throw(error("empty action set passed"))
-    end
-
-    for act in acts.path[1:length(acts)-1]
-        resolve!(g, act; rng = rng)
-    end
-
-    return resolve!(g, last(acts); rng = rng)
-end
-
-"""
-    resolveandbranch(game, action)
-
-Same as with [`resolve!`](@ref) but clones `game` and returns it.
-
-The first item of the tuple is the mutated copy of `game`, the latter two are those from [`resolve!`](@ref).
-"""
-function resolveandbranch(
-    g::Pandemic.Game,
-    act::PlayerAction;
-    rng = nothing,
-)::Tuple{Pandemic.Game,Bool,Bool}
-    gc = deepcopy(g)
-    r = resolve!(gc, act; rng = rng)
-    return (gc, r[1], r[2])
-end
 
 # TODO: add companion function which can mutate the list after a move without reperforming all checks
 """
