@@ -2,5 +2,8 @@ using Test
 using PandemicAIs
 using PandemicAIs.CompoundActions
 
-# TODO: bin me
-possiblecompounds(nothing)
+@testset "possiblecompounds" begin
+    # TODO: bin me
+    game = testgame()
+    possiblecompounds(game)
+end
