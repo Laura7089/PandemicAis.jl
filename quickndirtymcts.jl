@@ -6,6 +6,9 @@ using PandemicAIs.Actions
 using POMDPs
 using POMDPTools
 using SumTypes
+using Logging
+
+# global_logger(SimpleLogger(Logging.Debug))
 
 function basicreward(prevstate, action, state)::Float64
     gs = Pandemic.checkstate(state)
@@ -19,14 +22,14 @@ function basicreward(prevstate, action, state)::Float64
 
     return @cases action begin
         Pass => -5.0
-        CharterFlight => -2.0
-        DirectFlight => -2.0
+        CharterFlight => -5.0
+        DirectFlight => -5.0
         Drive => -1.0
         ShuttleFlight => -1.0
-        TreatDisease => 5.0
-        BuildStation => 10.0
-        ShareKnowledge => 10.0
-        DiscoverCure => 50.0
+        TreatDisease => 10.0
+        BuildStation => 30.0
+        ShareKnowledge => 100.0
+        DiscoverCure => 500.0
     end
 
     # if action == Actions.Pass
@@ -39,16 +42,35 @@ function basicreward(prevstate, action, state)::Float64
     # return -1.0
 end
 
-g = Pandemic.newgame(Pandemic.Maps.vanillamap(), Pandemic.Heroic, 4)
+g = Pandemic.newgame(Pandemic.Maps.vanillamap(), Pandemic.Introductory, 2)
 mdp = PandemicAIs.PODMPAdaptors.getquickmdp(basicreward)
-solver = MCTSSolver(reuse_tree=true)
+solver = MCTSSolver()
 planner = solve(solver, mdp)
+
+# Remove epidemics
+# g.drawpile = [c for c in g.drawpile if c != 0]
 
 # sim = HistoryRecorder(max_steps=30)
 # res = simulate(sim, mdp, planner, g)
 
-for (s, a, _, r) in stepthrough(mdp, planner, g)
-    println("took action $a for reward $r, state: $(Pandemic.checkstate(s))")
+@info "Starting sim"
+for (n, (s, a, _, r)) in enumerate(stepthrough(mdp, planner, g))
+    p = s.playerturn
+    println("p$p: $a (reward $r)")
+
+    nextstate = with_logger(SimpleLogger(Logging.Debug)) do
+	Actions.resolveandbranch(s, a)[1]
+    end
+    gs = with_logger(SimpleLogger(Logging.Debug)) do
+	Pandemic.checkstate(nextstate)
+    end
+
+    if n % Pandemic.ACTIONS_PER_TURN == 0
+	println()
+	println(nextstate)
+	println("lasted $n actions")
+	println()
+    end
 end
 
 # while !PandemicAIs.isterminal(g)
