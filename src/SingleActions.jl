@@ -172,7 +172,7 @@ function possiblenonmoves(g::Pandemic.Game)::Vector{PlayerAction}
     if g.stations[pos]
         # Check if relevant cards in hand
         diseasesinpos = filter(instances(Disease)) do d
-            count(c -> cities[c].colour == d, hand) >= Pandemic.CARDS_TO_CURE
+            count(c -> cities[c].colour == d, hand) >= g.settings.cards_to_cure
         end
         for d in diseasesinpos
             push!(actions, DiscoverCure(d, []))

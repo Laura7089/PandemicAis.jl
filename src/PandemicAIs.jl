@@ -36,7 +36,11 @@ Calls [`Pandemic.SingleActions.advanceaction!`](@ref) after the action has been 
 
 Pass `rng` kwarg to override `game.rng`.
 """
-function resolve!(g::Pandemic.Game, act::SingleActions.PlayerAction; rng = nothing)::Tuple{Bool,Bool}
+function resolve!(
+    g::Pandemic.Game,
+    act::SingleActions.PlayerAction;
+    rng = nothing,
+)::Tuple{Bool,Bool}
     PActions = Pandemic.Actions
     p = g.playerturn
     ploc = g.playerlocs[p]
@@ -94,7 +98,7 @@ export resolveandbranch
 
 @compile_workload begin
     map = Pandemic.Maps.vanillamap()
-    g = Pandemic.newgame(map, Pandemic.Introductory, 4)
+    g = Pandemic.newgame(map, Pandemic.Settings(4, Pandemic.Introductory))
     for act in SingleActions.possibleactions(g)
         branch = resolveandbranch(g, act)
     end

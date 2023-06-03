@@ -42,7 +42,7 @@ function basicreward(prevstate, action, state)::Float64
     # return -1.0
 end
 
-g = Pandemic.newgame(Pandemic.Maps.vanillamap(), Pandemic.Introductory, 2)
+g = Pandemic.newgame(Pandemic.Maps.vanillamap(), Pandemic.Settings(2, Pandemic.Introductory))
 mdp = PandemicAIs.PODMPAdaptors.getquickmdp(basicreward)
 solver = MCTSSolver()
 planner = solve(solver, mdp)
@@ -65,7 +65,7 @@ for (n, (s, a, _, r)) in enumerate(stepthrough(mdp, planner, g))
         Pandemic.checkstate(nextstate)
     end
 
-    if n % Pandemic.ACTIONS_PER_TURN == 0
+    if n % s.settings.actions_per_turn == 0
         println()
         println(nextstate)
         println("lasted $n actions")

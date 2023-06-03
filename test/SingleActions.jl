@@ -5,17 +5,12 @@ using PandemicAIs
 using PandemicAIs.SingleActions
 
 MAP = Pandemic.Maps.circle12()
-MAP_STARTER_LOCS = [
-                    Drive(3),
-                    Drive(4),
-                    Drive(5),
-                    Drive(9),
-                   ]
+MAP_STARTER_LOCS = [Drive(3), Drive(4), Drive(5), Drive(9)]
 
 function testgame(seed)
     # Pre-tested setup
     rng = MersenneTwister(seed)
-    return Pandemic.newgame(MAP, Pandemic.Introductory, 4, rng)
+    return Pandemic.newgame(MAP, Pandemic.Settings(4, Pandemic.Introductory), rng)
 end
 
 # TODO: this definitely needs more testing
