@@ -6,58 +6,20 @@ Types and objects for interfacting with the (POMDPS.jl)[https://github.com/Julia
 module PODMPAdaptors
 
 using POMDPs
+using POMDPTools
 using QuickPOMDPs
 
 using PandemicAIs
 import PandemicAIs: Actions
 
-"""
-    basicreward(state, previousaction; default=1.0, pass=0.0, loss=-100.0, win=100.0)
-
-Simple function for rewards.
-`state` is the [`Pandemic.Game`](@ref) which was obtained through `previousaction`.
-
-Allows passing reward amounts in, which are returned based on the state of the game:
-- `win` and `loss` for the respective game ends
-- `pass` if `previousaction` is [`Actions.Pass`](@ref); intended to de-incentivise doing nothing
-- `default` if none of the above apply
-"""
-function basicreward(
-    state,
-    prevaction;
-    default = 1.0,
-    pass = 0.0,
-    loss = -100.0,
-    win = 100.0,
-)::Float64
-    gs = Pandemic.checkstate(state)
-
-    if state == Pandemic.Lost
-        return loss
-    end
-    if state == Pandemic.Won
-        return win
-    end
-    if prevaction == Actions.Pass
-        return pass
-    end
-    return default
-end
-
-
-function getquickmdp()
-    function genfunc(cur, act, rng)
-        next = Actions.resolveandbranch(cur, act; rng=rng)[1]
-        reward = basicreward(next, act)
-        (sp = next, r = reward)
-    end
-
+function getquickmdp(reward)
     QuickMDP(
-        genfunc,
         actions = Actions.possibleactions,
+        transition = (s, a) -> Deterministic(Actions.resolveandbranch(s, a)[1]),
         statetype = Pandemic.Game,
         actiontype = Actions.PlayerAction,
         isterminal = PandemicAIs.isterminal,
+        reward = reward,
     )
 end
 
