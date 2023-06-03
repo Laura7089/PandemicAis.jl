@@ -114,6 +114,7 @@ function possiblecompounds(game; ignorecities = Set())::Vector{CompoundAction}
 end
 export possiblecompounds
 
+# TODO: this isn't very useful, it needs to allow multiple non-movement actions per round but it doesn't
 """
     possiblefullcompounds(g)
 
