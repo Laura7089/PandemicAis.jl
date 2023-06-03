@@ -54,7 +54,9 @@ end
 """
     ismove(action)
 
-Returns `true` if the action is a movement actions, otherwise `false`.
+Returns `true` if the action is a movement action, otherwise `false`.
+
+See also [`dest`](@ref).
 """
 function ismove(act::PlayerAction)::Bool
     @cases act begin
@@ -70,6 +72,28 @@ function ismove(act::PlayerAction)::Bool
     end
 end
 export ismove
+
+"""
+    dest(action)
+
+Returns a city if the action is a movement action, otherwise `nothing`.
+
+See also [`ismove`](@ref).
+"""
+function dest(act::PlayerAction)::Union{Int, Nothing}
+    @cases act begin
+        Drive(c) => c
+        DirectFlight(c) => c
+        CharterFlight(c) => c
+        ShuttleFlight(c) => c
+        BuildStation => nothing
+        DiscoverCure => nothing
+        TreatDisease => nothing
+        ShareKnowledge => nothing
+        Pass => nothing
+    end
+end
+export dest
 
 # TODO: add companion function which can mutate the list after a move without reperforming all checks
 """
