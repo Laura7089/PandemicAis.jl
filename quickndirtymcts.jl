@@ -31,19 +31,10 @@ function basicreward(prevstate, action, state)::Float64
         ShareKnowledge => 100.0
         DiscoverCure => 500.0
     end
-
-    # if action == Pass
-    #     return -2.0
-    # end
-    # if action == DiscoverCure
-    # return 100.0
-    # end
-
-    # return -1.0
 end
 
 g = Pandemic.newgame(Pandemic.Maps.vanillamap(), Pandemic.Settings(2, Pandemic.Introductory))
-mdp = PandemicAIs.PODMPAdaptors.getquickmdp(basicreward)
+mdp = PandemicAIs.PODMPAdaptors.quickmdpcompound(basicreward)
 solver = MCTSSolver()
 planner = solve(solver, mdp)
 

@@ -12,12 +12,23 @@ using QuickPOMDPs
 using PandemicAIs
 import PandemicAIs: SingleActions
 
-function getquickmdp(reward)
+function quickmdpsingle(reward)
     QuickMDP(
         actions = SingleActions.possibleactions,
         transition = (s, a) -> Deterministic(resolveandbranch(s, a)[1]),
         statetype = Pandemic.Game,
         actiontype = SingleActions.PlayerAction,
+        isterminal = PandemicAIs.isterminal,
+        reward = reward,
+    )
+end
+
+function quickmdpcompound(reward)
+    QuickMDP(
+        actions = CompoundActions.possiblecompounds,
+        transition = (s, a) -> Deterministic(resolveandbranch(s, a)[1]),
+        statetype = Pandemic.Game,
+        actiontype = CompoundActions.CompoundAction,
         isterminal = PandemicAIs.isterminal,
         reward = reward,
     )
