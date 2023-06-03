@@ -26,7 +26,7 @@ function isterminal(game)
 end
 
 """
-    resolve!(game, action)
+    resolve!(game, action::SingleActions.SingleAction)
 
 Play `action` as the current player of `game`, in the current state.
 
@@ -60,9 +60,9 @@ function resolve!(
     return PActions.advanceaction!(g; rng = rng)
 end
 """
-    resolve!(game, action)
+    resolve!(game, action::CompoundActions.CompoundAction)
 
-Play the [`CompoundActions.CompoundAction`](@ref) `action` out from on `game`.
+Play `action` out on `game`.
 
 If a component of `action` ends the game, this function will stop iterating.
 Returns `(l, r)` where `l` indicates if the player turn changed and `r` indicates if the round changed.
