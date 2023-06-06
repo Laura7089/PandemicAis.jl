@@ -8,3 +8,4 @@ end
 
 include("./SingleActions.jl")
 include("./CompoundActions.jl")
+include("./Rewards.jl")
