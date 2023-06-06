@@ -3,10 +3,10 @@ module PandemicAIs
 include("./SingleActions.jl")
 include("./CompoundActions.jl")
 include("./POMDPAdaptors.jl")
+include("./Rewards.jl")
 
 using Pandemic
 export Pandemic
-using .SingleActions
 
 using PrecompileTools
 using SumTypes

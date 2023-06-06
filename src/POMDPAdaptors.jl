@@ -12,37 +12,71 @@ using QuickPOMDPs
 using PandemicAIs
 import PandemicAIs: SingleActions, CompoundActions
 
-function quickmdpsingle(reward)
-    QuickMDP(
-        actions = SingleActions.possibleactions,
-        transition = (s, a) -> Deterministic(resolveandbranch(s, a)[1]),
-        statetype = Pandemic.Game,
-        actiontype = SingleActions.PlayerAction,
-        isterminal = PandemicAIs.isterminal,
-        reward = reward,
-    )
-end
+"""
+    basicmdp(actions, actiontype, reward)
 
-function quickmdpcompound(reward)
-    QuickMDP(
-        actions = CompoundActions.possiblecompounds,
-        transition = (s, a) -> Deterministic(resolveandbranch(s, a)[1]),
-        statetype = Pandemic.Game,
-        actiontype = CompoundActions.CompoundAction,
-        isterminal = PandemicAIs.isterminal,
-        reward = reward,
-    )
-end
+Wraps a call to [`QuickMDP`](@ref) with some sane defaults.
 
-function quickmdpfullcompound(reward)
+The arguments to this function are pass through as keyword arguments, but others are preset:
+
+- `transition`: state output of [`PandemicAIs.resolveandbranch`](@ref)
+- `statetype`: [`Pandemic.Game`](@ref)
+- `isterminal`: [`PandemicAIs.isterminal`](@ref)
+
+See also [`singleaction`](@ref), [`compound`](@ref), [`compoundfull`](@ref).
+"""
+function basicmdp(actions, actiontype, reward)
     QuickMDP(
-        actions = CompoundActions.possiblefullcompounds,
+        actions = actions,
+        actiontype = actiontype,
+        reward = reward,
         transition = (s, a) -> Deterministic(resolveandbranch(s, a)[1]),
         statetype = Pandemic.Game,
-        actiontype = CompoundActions.CompoundAction,
         isterminal = PandemicAIs.isterminal,
-        reward = reward,
     )
 end
+export basicmdp
+
+"""
+    singleaction(reward)
+
+Create an MDP with [`SingleActions.PlayerAction`](@ref)s as steps.
+
+`reward` is the reward function for the MDP.
+
+See also [`basicmdp`](@ref), [`compound`](@ref), [`compoundfull`](@ref).
+"""
+function singleaction(reward)
+    basicmdp(SingleActions.possibleactions, SingleActions.PlayerAction, reward)
+end
+export singleaction
+
+"""
+    compound(reward)
+
+Create an MDP with [`CompoundActions.CompoundAction`](@ref)s as steps.
+
+`reward` is the reward function for the MDP.
+
+See also [`basicmdp`](@ref), [`singleaction`](@ref), [`compoundfull`](@ref).
+"""
+function compound(reward)
+    basicmdp(CompoundActions.possiblecompounds, CompoundActions.CompoundAction, reward)
+end
+export compound
+
+"""
+    compoundfull(reward)
+
+As with [`compound`](@ref), but only considers actions which take an entire player turn.
+
+`reward` is the reward function for the MDP.
+
+See also [`basicmdp`](@ref), [`singleaction`](@ref), [`compound`](@ref).
+"""
+function fullcompound(reward)
+    basicmdp(CompoundActions.possiblefullcompounds, CompoundActions.CompoundAction, reward)
+end
+export compoundfull
 
 end
