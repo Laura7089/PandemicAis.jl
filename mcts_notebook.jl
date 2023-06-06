@@ -33,6 +33,7 @@ begin
 
 	using PlutoUI
 	using DataFrames
+	using Dates
 end
 
 # ╔═╡ 0dda3960-d304-47e4-ac87-877453db1f79
@@ -43,49 +44,58 @@ md"""# Pandemic Monte Carlo Tree Search
 md"## Setup"
 
 # ╔═╡ 9edd1af7-57a5-4bce-b424-1f1ee71ecd13
-md"""### Game Parameters
-
-Set parameters for the game here.
-
-Map: $(@bind mapt Select(["vanillamap" => "Vanilla", "circle12" => "'12-Circle'"]))
-
-Players: $(@bind players Slider(2:4, show_value=true))
-
-Difficulty: $(@bind dif Select(["Introductory", "Normal", "Heroic"]))
-
-$(@bind regen Button("Generate Game State"))
-"""
+@bind game_params confirm(PlutoUI.combine() do Child
+	md"""### Game Parameters
+	
+	Set parameters for the game here.
+	
+	Map: $(Child("mapt", Select(["vanillamap" => "Vanilla", "circle12" => "'12-Circle'"])))
+	
+	Players: $(Child("players", Slider(2:4, show_value=true)))
+	
+	Difficulty: $(Child("dif", Select(["Introductory", "Normal", "Heroic"])))
+	
+	Extra settings, command separated. See `Pandemic.Settings`:
+	
+	$(Child("setargs", TextField((50, 5))))
+	"""
+end)
 
 # ╔═╡ 0b7b1af4-1220-4467-ac2d-fcf00a6a29a4
 begin
-	regen
-	difficulty = getproperty(Pandemic, Symbol(dif))
+	local kwargs = isempty(game_params.setargs) ? () : eval(Meta.parse("($(game_params.setargs),)"))
+	local difficulty = getproperty(Pandemic, Symbol(game_params.dif))
+	local map = getproperty(Pandemic.Maps, Symbol(game_params.mapt))()
 	game = Pandemic.newgame(
-		getproperty(Pandemic.Maps, Symbol(mapt))(),
+		map,
 		Pandemic.Settings(
-			players,
-			difficulty,
+			game_params.players,
+			difficulty;
+			kwargs...
 		)
 	)
 end
 
 # ╔═╡ a6267fcb-1472-4d3d-9084-2912623041dd
-md"""### Solver Parameters
+@bind solver_params confirm(PlutoUI.combine() do Child
+	md"""### Solver Parameters
 
 Set parameters for the [`MCTS.jl` Solver](https://juliapomdp.github.io/MCTS.jl/stable/vanilla/#MCTS.MCTSSolver).
 
-Maximum CPU Time: $(@bind max_time Slider(50.0: 1.0 : 1000.0, show_value=true, default=100.0))
+Maximum CPU Time: $(Child("max_time", Slider(1.0 : 1.0 : 30.0, show_value=true, default=2.0))) seconds
 
-\# of Iterations per Action: $(@bind n_iterations Slider(5:200, show_value=true, default=30))
+\# of Iterations per Action: $(Child("n_iterations", Slider(5:200, show_value=true, default=30)))
 
-Rollout Horizon Depth: $(@bind depth Slider(5:20, show_value=true))
+Rollout Horizon Depth: $(Child("depth", Slider(5:20, show_value=true)))
 """
+end)
 
 # ╔═╡ f576dd96-bf35-4100-8b05-ef6505f03014
 solver = MCTSSolver(
-	max_time=max_time,
-	n_iterations=n_iterations,
-	depth=depth,
+	max_time=solver_params.max_time,
+	n_iterations=solver_params.n_iterations,
+	depth=solver_params.depth,
+	timer= () -> millisecond(now()) / 1000,
 )
 
 # ╔═╡ 97305b58-16b1-4008-bdd1-294d4453c8f4
@@ -121,18 +131,16 @@ Option | Action Type | Notes
 `compound` | `PandemicAIs.CompoundActions.CompoundAction` | Compound action length ranges from `1` to the remaining actions for the current player
 `compoundfull` |`PandemicAIs.CompoundActions.CompoundAction` | Compount action length is fixed at exactly the remaining actions for the current player
 
-$(@bind mdptype Select(["singleaction", "compound", "fullcompound"]))
+$(@bind mdptype Select(["singleaction", "compound", "fullcompound"]; default="compound"))
 """
 
 # ╔═╡ b0cbc6e4-fcd0-40e6-837f-ef4dc802c0d7
-begin
-	mdp = if mdptype == "singleaction"
-		PandemicAIs.POMDPAdaptors.singleaction((_, a, _) -> basicreward(a))
-	elseif mdptype == "compound"
-		PandemicAIs.POMDPAdaptors.compound((_, a, _) -> compoundreward(a))
-	elseif mdptype == "compoundfull"
-		PandemicAIs.POMDPAdaptors.compoundfull((_, a, _) -> compoundreward(a))
-	end
+mdp = if mdptype == "singleaction"
+	PandemicAIs.POMDPAdaptors.singleaction((_, a, _) -> basicreward(a))
+elseif mdptype == "compound"
+	PandemicAIs.POMDPAdaptors.compound((_, a, _) -> compoundreward(a))
+elseif mdptype == "compoundfull"
+	PandemicAIs.POMDPAdaptors.compoundfull((_, a, _) -> compoundreward(a))
 end
 
 # ╔═╡ 008a98a1-0d0b-4958-a36e-135583c6d42b
@@ -141,8 +149,11 @@ planner = solve(solver, mdp)
 # ╔═╡ cc58dcc5-e605-4695-a7c9-45f56e304885
 md"""## Simulation
 
-Number of (parallel) simulations to run: $(@bind numsims Slider(1:20, show_value=true))
+Number of (parallel) simulations to run: $(@bind numsims confirm(Slider(1:20, show_value=true, default=8)))
 """
+
+# ╔═╡ 4baf1733-ad01-401c-9307-a663446eb6ee
+to_run = [Sim(deepcopy(mdp), deepcopy(planner), deepcopy(game)) for _ in 1:numsims]
 
 # ╔═╡ e586142f-157c-48a8-8853-0fbf9fb47945
 function getstats(history)
@@ -154,19 +165,16 @@ function getstats(history)
 	)
 end
 
-# ╔═╡ 19ee46e2-21fb-4961-8023-d755c91740f5
-simulator = HistoryRecorder()
-
 # ╔═╡ 211c06ac-c41f-472a-8238-19a9c8749a58
-getstats(simulate(simulator, mdp, planner, game))
+s = @time simulate(HistoryRecorder(), mdp, planner, game)
 
-# ╔═╡ 4baf1733-ad01-401c-9307-a663446eb6ee
-to_run = [Sim(mdp, planner, deepcopy(game)) for _ in 1:numsims]
+# ╔═╡ b6bf0f91-361d-4c4d-820a-45a2a07c4653
+getstats(s)
 
 # ╔═╡ 25f71a03-2a73-43cf-a4fd-7faf7fae12c0
 # ╠═╡ disabled = true
 #=╠═╡
-run((_, h) -> getstats(h), to_run, show_progress=false)
+run_parallel((_, h) -> getstats(h), to_run, show_progress=false)
   ╠═╡ =#
 
 # ╔═╡ Cell order:
@@ -174,7 +182,7 @@ run((_, h) -> getstats(h), to_run, show_progress=false)
 # ╟─0dda3960-d304-47e4-ac87-877453db1f79
 # ╟─6a77f3c8-bd39-4c13-8c85-18f3c4e008bd
 # ╟─9edd1af7-57a5-4bce-b424-1f1ee71ecd13
-# ╠═0b7b1af4-1220-4467-ac2d-fcf00a6a29a4
+# ╟─0b7b1af4-1220-4467-ac2d-fcf00a6a29a4
 # ╟─a6267fcb-1472-4d3d-9084-2912623041dd
 # ╠═f576dd96-bf35-4100-8b05-ef6505f03014
 # ╟─97305b58-16b1-4008-bdd1-294d4453c8f4
@@ -184,8 +192,8 @@ run((_, h) -> getstats(h), to_run, show_progress=false)
 # ╠═b0cbc6e4-fcd0-40e6-837f-ef4dc802c0d7
 # ╠═008a98a1-0d0b-4958-a36e-135583c6d42b
 # ╟─cc58dcc5-e605-4695-a7c9-45f56e304885
-# ╠═e586142f-157c-48a8-8853-0fbf9fb47945
-# ╠═19ee46e2-21fb-4961-8023-d755c91740f5
-# ╠═211c06ac-c41f-472a-8238-19a9c8749a58
 # ╠═4baf1733-ad01-401c-9307-a663446eb6ee
+# ╠═e586142f-157c-48a8-8853-0fbf9fb47945
+# ╠═211c06ac-c41f-472a-8238-19a9c8749a58
+# ╠═b6bf0f91-361d-4c4d-820a-45a2a07c4653
 # ╠═25f71a03-2a73-43cf-a4fd-7faf7fae12c0

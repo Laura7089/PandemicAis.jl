@@ -23,8 +23,8 @@ test *args="":
 alias t := test
 
 # Get an interactive notebook
-notebook:
-    {{ JULIA }} -e 'using Pluto; Pluto.run()'
+notebook procs="auto" *args="":
+    {{ JULIA }} -p {{ procs }} -e 'using Pluto; Pluto.run()' {{ args }}
 
 # TEMP: update `Pandemic` from github, run tests afterwards
 updatepandemic: && test
