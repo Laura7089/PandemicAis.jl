@@ -35,14 +35,7 @@ function singlereward(prevstate, action, state)::Float64
 end
 
 function compoundreward(prevstate, caction, state)::Float64
-    gs = Pandemic.checkstate(state)
-    if gs == Pandemic.Lost
-        return -100.0
-    elseif gs == Pandemic.Won
-        return 1000.0
-    end
-
-    return map(basicreward, caction) |> sum
+    map(basicreward, caction) |> sum
 end
 
 g = Pandemic.newgame(
@@ -53,8 +46,13 @@ g = Pandemic.newgame(
         cards_to_cure=2,
     ),
 )
-mdp = PandemicAIs.PODMPAdaptors.quickmdpfullcompound(compoundreward)
-solver = MCTSSolver()
+mdp = PandemicAIs.PODMPAdaptors.compound(compoundreward)
+solver = MCTSSolver(
+    max_time=100.0,
+    n_iterations=30,
+    depth=5,
+    estimate_value=(_, s, _) -> PandemicAIs.Rewards.CubeSaturation.max_all(s),
+)
 planner = solve(solver, mdp)
 
 # Remove epidemics
