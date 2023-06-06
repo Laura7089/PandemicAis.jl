@@ -139,13 +139,33 @@ end
 planner = solve(solver, mdp)
 
 # ╔═╡ cc58dcc5-e605-4695-a7c9-45f56e304885
-md"""## Simulation"""
+md"""## Simulation
+
+Number of (parallel) simulations to run: $(@bind numsims Slider(1:20, show_value=true))
+"""
+
+# ╔═╡ e586142f-157c-48a8-8853-0fbf9fb47945
+function getstats(sim, history)
+	return (
+		state = Pandemic.checkstate(history[end].sp),
+		nsteps = length(history),
+	)
+end
 
 # ╔═╡ 19ee46e2-21fb-4961-8023-d755c91740f5
 simulator = HistoryRecorder()
 
+# ╔═╡ 4baf1733-ad01-401c-9307-a663446eb6ee
+to_run = [Sim(mdp, planner, deepcopy(game)) for _ in 1:numsims]
+
 # ╔═╡ 211c06ac-c41f-472a-8238-19a9c8749a58
 simulate(simulator, mdp, planner, game)
+
+# ╔═╡ 25f71a03-2a73-43cf-a4fd-7faf7fae12c0
+# ╠═╡ disabled = true
+#=╠═╡
+run_parallel(getstats, to_run, show_progress=false)
+  ╠═╡ =#
 
 # ╔═╡ Cell order:
 # ╠═0f87af60-048d-11ee-09b0-9fc4afb47557
@@ -162,5 +182,8 @@ simulate(simulator, mdp, planner, game)
 # ╠═b0cbc6e4-fcd0-40e6-837f-ef4dc802c0d7
 # ╠═008a98a1-0d0b-4958-a36e-135583c6d42b
 # ╟─cc58dcc5-e605-4695-a7c9-45f56e304885
+# ╠═e586142f-157c-48a8-8853-0fbf9fb47945
 # ╠═19ee46e2-21fb-4961-8023-d755c91740f5
+# ╠═4baf1733-ad01-401c-9307-a663446eb6ee
 # ╠═211c06ac-c41f-472a-8238-19a9c8749a58
+# ╠═25f71a03-2a73-43cf-a4fd-7faf7fae12c0
