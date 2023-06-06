@@ -3,7 +3,7 @@
 
 Types and objects for interfacting with the (POMDPS.jl)[https://github.com/JuliaPOMDP/POMDPs.jl] ecosystem.
 """
-module PODMPAdaptors
+module POMDPAdaptors
 
 using POMDPs
 using POMDPTools
