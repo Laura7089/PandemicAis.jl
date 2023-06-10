@@ -27,10 +27,13 @@ See also [`singleaction`](@ref), [`compound`](@ref), [`compoundfull`](@ref).
 """
 function basicmdp(actions, actiontype, reward)
     QuickMDP(
+        gen = function (s, a, rng)
+            r = reward(s, a)
+            nextstate = resolveandbranch(s, a, rng=rng)[1]
+            return (sp = nextstate, r = r)
+        end,
         actions = actions,
         actiontype = actiontype,
-        reward = reward,
-        transition = (s, a) -> Deterministic(resolveandbranch(s, a)[1]),
         statetype = Pandemic.Game,
         isterminal = PandemicAIs.isterminal,
     )

@@ -1,6 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.9.0"
+julia_version = "1.9.1"
 manifest_format = "2.0"
 project_hash = "452146ede369d5cca7a4ac843518dd9dd37e2993"
 
@@ -456,7 +456,7 @@ version = "0.9.5"
 
 [[deps.Pandemic]]
 deps = ["DataStructures", "EzXML", "GraphIO", "Graphs", "Logging", "Match", "Parameters", "PrecompileTools", "Random"]
-git-tree-sha1 = "332506a40c1cc29ec92eecf049b01aaeba73aa58"
+git-tree-sha1 = "0a389e68d7f306b59e4c1bd6a89c972d2c2f656f"
 repo-rev = "main"
 repo-url = "https://github.com/Laura7089/Pandemic.jl"
 uuid = "2f1a64cf-8e1a-4d5e-af1d-3b57a049fca1"
@@ -770,7 +770,7 @@ version = "1.2.13+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
-version = "5.7.0+0"
+version = "5.8.0+0"
 
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]

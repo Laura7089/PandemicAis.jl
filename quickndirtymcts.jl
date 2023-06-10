@@ -9,7 +9,7 @@ using POMDPTools
 using SumTypes
 using Logging
 
-function basicreward(action)::Float64
+function basicreward(_prevstate, action)::Float64
     return @cases action begin
         Pass => -5.0
         CharterFlight => -5.0
@@ -23,16 +23,17 @@ function basicreward(action)::Float64
     end
 end
 
-function compoundreward(prevstate, caction, state)::Float64
-    map(basicreward, caction) |> sum
+function compoundreward(prevstate, caction)::Float64
+    map(a -> basicreward(nothing, a), caction) |> sum
 end
 
+function run()
 g = Pandemic.newgame(
     Pandemic.Maps.vanillamap(),
     Pandemic.Settings(
         2,
         Pandemic.Introductory;
-        cards_to_cure=2,
+        cards_to_cure=4,
     ),
 )
 mdp = PandemicAIs.POMDPAdaptors.compound(compoundreward)
@@ -51,15 +52,20 @@ planner = solve(solver, mdp)
 # res = simulate(sim, mdp, planner, g)
 
 @info "Starting sim"
-for (n, (s, a, _, r)) in enumerate(stepthrough(mdp, planner, g))
+@time for (n, (s, a, _, r)) in enumerate(stepthrough(mdp, planner, g))
     p = s.playerturn
-    println("p$p: $a (reward $r)")
+    # println("p$p: $a (reward $r)")
 
     nextstate, gs = with_logger(SimpleLogger(Logging.Info)) do
         ns = resolveandbranch(s, a)[1]
         (ns, Pandemic.checkstate(ns))
     end
-    println(nextstate)
-    println("$n turns taken")
-    println()
+    if PandemicAIs.isterminal(nextstate)
+        println(nextstate)
+        println("$n turns taken")
+        println()
+    end
 end
+end
+
+run()
