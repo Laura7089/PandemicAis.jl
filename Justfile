@@ -27,5 +27,5 @@ notebook procs="auto" *args="":
     {{ JULIA }} -p {{ procs }} -e 'using Pluto; Pluto.run()' {{ args }}
 
 # TEMP: update `Pandemic` from github, run tests afterwards
-updatepandemic: && test
+updatepandemic:
     {{ JULIA }} --project -e 'using Pkg; Pkg.update("Pandemic")'

@@ -456,7 +456,7 @@ version = "0.9.5"
 
 [[deps.Pandemic]]
 deps = ["DataStructures", "EzXML", "GraphIO", "Graphs", "Logging", "Match", "Parameters", "PrecompileTools", "Random"]
-git-tree-sha1 = "0a389e68d7f306b59e4c1bd6a89c972d2c2f656f"
+git-tree-sha1 = "7c9928643d6fc56be603b939b3ac64ef8621b28c"
 repo-rev = "main"
 repo-url = "https://github.com/Laura7089/Pandemic.jl"
 uuid = "2f1a64cf-8e1a-4d5e-af1d-3b57a049fca1"
