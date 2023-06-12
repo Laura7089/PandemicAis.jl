@@ -4,8 +4,8 @@ TEST_DIR := "./test"
 JULIA := "julia"
 
 # Get an interactive shell with the module in scope
-interactive:
-    {{ JULIA }} --project -ie "using PandemicAIs"
+interactive *args="":
+    {{ JULIA }} --project {{ args }} -ie "using PandemicAIs"
 alias i := interactive
 
 # Format all files in `target`
