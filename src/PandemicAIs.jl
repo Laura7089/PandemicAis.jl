@@ -48,8 +48,7 @@ function resolve!(
         DirectFlight(c) => PActions.move_direct!(g, p, c)
         CharterFlight(c) => PActions.move_chartered!(g, p, c)
         ShuttleFlight(c) => PActions.move_station!(g, p, c)
-        # TODO: this will crash if we have all stations in play
-        BuildStation => PActions.buildstation!(g, p, g.playerlocs[p])
+        BuildStation => PActions.buildstation!(g, p, g.playerlocs[p], findfirst(g.stations))
         DiscoverCure(d) => PActions.findcure!(g, p, d)
         # TODO: this doesn't provide a way to treat disease cubes which aren't in the city
         TreatDisease(d) => PActions.treatdisease!(g, p, ploc, d)
